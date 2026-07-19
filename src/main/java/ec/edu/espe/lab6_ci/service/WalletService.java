@@ -2,16 +2,16 @@ package ec.edu.espe.lab6_ci.service;
 
 import ec.edu.espe.lab6_ci.dto.WalletResponse;
 import ec.edu.espe.lab6_ci.model.Wallet;
-import ec.edu.espe.lab6_ci.repository.WalletRepositiry;
+import ec.edu.espe.lab6_ci.repository.WalletRepository;
 
 import java.util.Optional;
 
 public class WalletService {
-    private final WalletRepositiry walletRepositiry;
+    private final WalletRepository walletRepository;
     private final RiskClient riskClient;
 
-    public WalletService(WalletRepositiry walletRepositiry, RiskClient riskClient){
-        this.walletRepositiry = walletRepositiry;
+    public WalletService(WalletRepository walletRepository, RiskClient riskClient){
+        this.walletRepository = walletRepository;
         this.riskClient = riskClient;
     }
 
@@ -31,12 +31,12 @@ public class WalletService {
         }
 
         //Regla de negocio: no duplicar billerar por email
-        if(walletRepositiry.existsByOwnerEmail(ownerEmail)){
+        if(walletRepository.existsByOwnerEmail(ownerEmail)){
             throw new IllegalStateException("Wallet already exists");
         }
 
         Wallet wallet = new Wallet(ownerEmail, initialBalance);
-        Wallet saved = walletRepositiry.save(wallet);
+        Wallet saved = walletRepository.save(wallet);
 
         return  new WalletResponse(saved.getBalance(), saved.getId());
     }
@@ -45,7 +45,7 @@ public class WalletService {
         if(amount<0){
             throw new IllegalArgumentException("Deposit amount must be > 0");
         }
-        Optional<Wallet> found = walletRepositiry.findById(walletId);
+        Optional<Wallet> found = walletRepository.findById(walletId);
         if(found.isEmpty()){
             throw new IllegalArgumentException("Wallet not found");
         }
@@ -54,7 +54,7 @@ public class WalletService {
         wallet.deposit(amount);
 
         //Persistencia los 800
-        walletRepositiry.save(wallet);
+        walletRepository.save(wallet);
         return wallet.getBalance();
     }
 
@@ -63,14 +63,14 @@ public class WalletService {
             throw new IllegalArgumentException("Withdraw amount must be > 0");
         }
 
-        Wallet wallet = walletRepositiry.findById(walletId)
+        Wallet wallet = walletRepository.findById(walletId)
                 .orElseThrow(() -> new IllegalArgumentException("Wallet not found"));
         if(wallet.getBalance()<amount){
             throw new IllegalStateException("Insufficient Funds");
         }
 
         wallet.withdraw(amount);
-        walletRepositiry.save(wallet);
+        walletRepository.save(wallet);
         return wallet.getBalance();
     }
 }
