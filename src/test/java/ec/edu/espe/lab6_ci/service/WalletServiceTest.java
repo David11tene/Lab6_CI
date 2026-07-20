@@ -21,7 +21,8 @@ public class WalletServiceTest {
     private RiskClient riskClient;
     private WalletRepository walletRepository;
 
-    //Arrange de todas las pruebas
+    //Arrange de todas las
+    // pruebas
     @BeforeEach
     public void setUp() {
         walletRepository = Mockito.mock(WalletRepository.class);

@@ -1,0 +1,39 @@
+name: CD SpringBoot
+
+# 1. Configurado para ejecutarse únicamente ante cambios en la rama 'main'
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clonar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Dar permisos de ejecucion a gradlew
+        run: chmod +x gradlew
+
+      # Configurar Java 21 (Temurin) necesario para el build
+      - name: Configurar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      # 2. Ejecutar las pruebas automatizadas
+      - name: Ejecutar pruebas automatizadas
+        run: ./gradlew test
+
+      # 3. Construir el proyecto y generar el archivo ejecutable (.jar)
+      - name: Construir y generar JAR
+        run: ./gradlew build
+
+      # 4. Publicar el archivo ejecutable (.jar) generado como un artefacto descargable
+      - name: Publicar artefacto (.jar)
+        uses: actions/upload-artifact@v4
+        with:
+          name: springboot-deploy-jar
+          path: build/libs/*.jar
