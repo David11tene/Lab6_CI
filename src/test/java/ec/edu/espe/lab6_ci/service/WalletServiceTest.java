@@ -2,7 +2,7 @@ package ec.edu.espe.lab6_ci.service;
 
 import ec.edu.espe.lab6_ci.dto.WalletResponse;
 import ec.edu.espe.lab6_ci.model.Wallet;
-import ec.edu.espe.lab6_ci.repository.WalletRepositiry;
+import ec.edu.espe.lab6_ci.repository.WalletRepository;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Assertions;
@@ -19,14 +19,14 @@ import java.util.regex.Matcher;
 public class WalletServiceTest {
     private WalletService walletService;
     private RiskClient riskClient;
-    private WalletRepositiry walletRepositiry;
+    private WalletRepository walletRepository;
 
     //Arrange de todas las pruebas
     @BeforeEach
     public void setUp() {
-        walletRepositiry = Mockito.mock(WalletRepositiry.class);
+        walletRepository = Mockito.mock(WalletRepository.class);
         riskClient = Mockito.mock(RiskClient.class);
-        walletService = new WalletService(walletRepositiry, riskClient);
+        walletService = new WalletService(walletRepository, riskClient);
     }
 
     @Test
@@ -37,9 +37,9 @@ public class WalletServiceTest {
 
         Mockito.when(riskClient.isBlocked(email)).thenReturn(false);
 
-        Mockito.when(walletRepositiry.existsByOwnerEmail(email)).thenReturn(false);
+        Mockito.when(walletRepository.existsByOwnerEmail(email)).thenReturn(false);
 
-        Mockito.when(walletRepositiry.save(ArgumentMatchers.any(Wallet.class)))
+        Mockito.when(walletRepository.save(ArgumentMatchers.any(Wallet.class)))
                         .thenAnswer(i -> i.getArguments()[0]);
 
         //Act
@@ -50,8 +50,8 @@ public class WalletServiceTest {
         Assertions.assertEquals(150,response.getBalance());
 
         Mockito.verify(riskClient).isBlocked(email);
-        Mockito.verify(walletRepositiry).existsByOwnerEmail(email);
-        Mockito.verify(walletRepositiry).save(ArgumentMatchers.any(Wallet.class));
+        Mockito.verify(walletRepository).existsByOwnerEmail(email);
+        Mockito.verify(walletRepository).save(ArgumentMatchers.any(Wallet.class));
     }
 
     @Test
@@ -65,7 +65,7 @@ public class WalletServiceTest {
                 walletService.createWallet(invalidEmail, balance));
 
         //No debe llamar a ninguna de las depencias
-        Mockito.verifyNoInteractions(walletRepositiry,riskClient);
+        Mockito.verifyNoInteractions(walletRepository,riskClient);
 
     }
 
@@ -74,13 +74,13 @@ public class WalletServiceTest {
         //Arrange
         String walletId="No-existe";
 
-        Mockito.when(walletRepositiry.findById(walletId)).thenReturn(Optional.empty());
+        Mockito.when(walletRepository.findById(walletId)).thenReturn(Optional.empty());
         //Act+Assert
         IllegalArgumentException ex = Assertions.assertThrows(IllegalArgumentException.class, ()
                 -> walletService.deposit(walletId,50));
         Assertions.assertEquals("Wallet not found", ex.getMessage());
-        Mockito.verify(walletRepositiry).findById(walletId);
-        Mockito.verify(walletRepositiry, Mockito.never()).save(ArgumentMatchers.any(Wallet.class));
+        Mockito.verify(walletRepository).findById(walletId);
+        Mockito.verify(walletRepository, Mockito.never()).save(ArgumentMatchers.any(Wallet.class));
     }
 
 
@@ -90,15 +90,15 @@ public class WalletServiceTest {
         Wallet wallet = new Wallet("david.teneguznay@gmail.com",100.00);
         String walletId=wallet.getId();
 
-        Mockito.when(walletRepositiry.findById(walletId)).thenReturn(Optional.of(wallet));
-        Mockito.when(walletRepositiry.save(ArgumentMatchers.any(Wallet.class)))
+        Mockito.when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
+        Mockito.when(walletRepository.save(ArgumentMatchers.any(Wallet.class)))
                 .thenAnswer(i -> i.getArguments()[0]);
         ArgumentCaptor<Wallet> captor = ArgumentCaptor.forClass(Wallet.class);
 
         //Act
         double newBalance = walletService.deposit(walletId,30.00);
 
-        Mockito.verify(walletRepositiry).save(captor.capture());
+        Mockito.verify(walletRepository).save(captor.capture());
         Wallet saved = captor.getValue();
 
         Assertions.assertEquals(130.00, saved.getBalance());
@@ -110,14 +110,14 @@ public class WalletServiceTest {
         Wallet wallet = new Wallet("david@ejemplo.com", 250);
         String walletId=wallet.getId();
 
-        Mockito.when(walletRepositiry.findById(walletId)).thenReturn(Optional.of(wallet));
+        Mockito.when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
 
         //Act + Assert
         IllegalStateException ex = Assertions.assertThrows(IllegalStateException.class, () ->
                 walletService.withdraw(walletId,1000));
 
         Assertions.assertEquals("Insufficient Funds", ex.getMessage());
-        Mockito.verify(walletRepositiry, Mockito.never()).save(ArgumentMatchers.any(Wallet.class));
+        Mockito.verify(walletRepository, Mockito.never()).save(ArgumentMatchers.any(Wallet.class));
 
     }
 }
