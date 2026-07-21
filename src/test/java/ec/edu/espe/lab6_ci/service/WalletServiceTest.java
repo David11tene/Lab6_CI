@@ -121,4 +121,5 @@ public class WalletServiceTest {
         Mockito.verify(walletRepository, Mockito.never()).save(ArgumentMatchers.any(Wallet.class));
 
     }
+
 }
