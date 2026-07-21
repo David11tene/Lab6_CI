@@ -31,7 +31,8 @@ jobs:
       - name: Construir y generar JAR
         run: ./gradlew build
 
-      # 4. Publicar el archivo ejecutable (.jar) generado como un artefacto descargable
+      # 4. Publicar el archivo ejecutable
+      #(.jar) generado como un artefacto descargable
       - name: Publicar artefacto (.jar)
         uses: actions/upload-artifact@v4
         with:
