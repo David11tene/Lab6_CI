@@ -22,14 +22,13 @@ public class WalletService {
             throw new IllegalArgumentException("Invalid owner email");
         }
         if(initialBalance<0){
-            throw new IllegalArgumentException("Invalid balance must be greater than 0");
+            throw new IllegalArgumentException("Invalid balance must " +
+                    "be greater than 0");
         }
-
         //Regla de negocion: el usuario bloqueado
         if (riskClient.isBlocked(ownerEmail)){
             throw new IllegalStateException("User blocked");
         }
-
         //Regla de negocio: no duplicar billerar por email
         if(walletRepository.existsByOwnerEmail(ownerEmail)){
             throw new IllegalStateException("Wallet already exists");
